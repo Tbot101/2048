@@ -9,4 +9,5 @@ public class GameBoard {
     // Game constants
     public static final int BOARD_WIDTH = 300;
     public static final int BOARD_HEIGHT = 300;
+
 }

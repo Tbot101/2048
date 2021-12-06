@@ -24,7 +24,17 @@ public class Run2048 implements Runnable{
     }
 
     private void screenHome() {
+        /*
+        final Lightbulb bulb = new LightBulb()'
+        JButton button = new JButton("on/Off");
 
+        button.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                System.exit(0);
+            }
+           });
+        */
+        JOptionPane.showMessageDialog(FRAME,"Hello","Computer",JOptionPane.INFORMATION_MESSAGE);
     }
 
     /**
