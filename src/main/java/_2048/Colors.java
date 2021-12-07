@@ -6,7 +6,7 @@ import java.util.HashMap;
 public class Colors {
     private HashMap<Integer, Color> colorHashMap = new HashMap<>();
 
-    public void Colors(){
+    public Colors(){
         colorHashMap.put(0, new Color(255,205,204));
         colorHashMap.put(2, new Color(200,255,204));
         colorHashMap.put(4, new Color(150,204,102));

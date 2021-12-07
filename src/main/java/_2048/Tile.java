@@ -23,6 +23,7 @@ public class Tile {
 
     public void setValue(int value) {
         this.value = value;
+        setColor();
     }
 
     public String toString(){

@@ -19,7 +19,9 @@ public class _2048 {
                 board[i][j] = new Tile();
             }
         }
-        gameState.add(board);
+        addTile();
+        addTile();
+        gameStateSave();
         score = 0;
     }
 
@@ -39,6 +41,19 @@ public class _2048 {
             }
             System.out.println("");
         }
+        System.out.println("");
+        System.out.println("");
+    }
+
+    public void print(Tile[][] board) {
+        for(int i = 0; i<4; i++){
+            for(int j=0; j<4;j++){
+                int tileVal = board[i][j].getValue();
+                System.out.print(tileVal);
+            }
+            System.out.println("");
+        }
+        System.out.println("");
     }
 
     public int getHighTile() {
@@ -55,7 +70,7 @@ public class _2048 {
     }
 
     public void addTile() {
-        List<Integer[]> list = new ArrayList<Integer[]>();
+        List<Integer[]> list = new ArrayList<>();
         for(int i = 0; i<4; i++){
             for(int j=0; j<4;j++){
                 if(board[i][j].getValue()==0){
@@ -70,21 +85,30 @@ public class _2048 {
         Integer[] newPos = list.get(rand.nextInt(list.size()));
         float random = new Random().nextInt(10);
         int newTileVal = random > 8 ? 4 : 2;
-        Tile newTile = null;
-        newTile.setValue(newTileVal);
-        board[newPos[0]][newPos[1]] = newTile;
-        gameState.add(board);
+        board[newPos[0]][newPos[1]] = new Tile(newTileVal);
     }
 
     public void previousMove(){
+        gameState.pop();
         Tile[][] oldBoard = gameState.pop();
+        System.out.println("PRINT OLDBOARD");
         board = oldBoard;
+        print(board);
+        System.out.println("PRINT OLDBOARD");
+    }
+
+    public void gameStateSave(){
+        Tile[][] saveBoard = board.clone();
+        gameState.add(saveBoard);
     }
 
     public static void main(String args[]){
         _2048 game = new _2048();
         game.print();
         game.addTile();
+        game.gameStateSave();
+        game.print();
+        game.previousMove();
         game.print();
     }
 }
