@@ -9,7 +9,6 @@ public class Tile {
     Colors colorMap = new Colors();
 
     public Tile() {
-        this.value = 0;
         setColor();
     }
 

@@ -1,11 +1,24 @@
 package _2048;
 
+import com.sun.org.apache.xerces.internal.xs.StringList;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class _2048 {
     private Tile[][] board;
     private int score;
+    private int highTile;
     private Stack<Tile[][]> gameState = new Stack<>();
+    private Stack<Integer> gameScore = new Stack<>();
+    private Stack<Integer> gameHighTile = new Stack<>();
+    private List<String> saveGame = new ArrayList<>();
+    static final String PATH_TO_SAVED_GAMES = "files/saved_game.txt";
+
     private boolean gameStatus;
     private int MAX_INT = 2048;
 
@@ -13,8 +26,9 @@ public class _2048 {
         reset();
     }
 
-    private void reset() {
+    public void reset() {
         board = new Tile[4][4];
+        gameStatus = true;
         gameState.clear();
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
@@ -23,8 +37,9 @@ public class _2048 {
         }
         addTile();
         addTile();
-        gameStateSave();
         score = 0;
+        highTile = getHighTile();
+        gameStateSave();
     }
 
     public Tile[][] getBoard(){
@@ -54,8 +69,9 @@ public class _2048 {
             }
             System.out.println("");
         }
+        System.out.println("Score: "+ score);
         System.out.println("");
-        System.out.println("");
+
     }
 
     public void print(Tile[][] board) {
@@ -66,7 +82,20 @@ public class _2048 {
             }
             System.out.println("");
         }
-        System.out.println("");
+        System.out.println("Score: "+ score);
+    }
+
+    public String toString(Tile[][] board){
+        String boardString = "";
+        for(int i = 0; i<4; i++){
+            for(int j=0; j<4;j++){
+                int tileVal = board[i][j].getValue();
+                boardString += tileVal;
+            }
+            boardString += "\n";
+        }
+        System.out.println(boardString);
+        return boardString;
     }
 
     public int getHighTile() {
@@ -103,26 +132,84 @@ public class _2048 {
 
     public void previousMove(){
         gameState.pop();
+        gameScore.pop();
+        gameHighTile.pop();
         Tile[][] oldBoard = gameState.pop();
+        Integer oldScore = gameScore.pop();
+        Integer oldHighTile = gameHighTile.pop();
         board = oldBoard;
-        System.out.println("PRINT OLDBOARD");
+        score = oldScore;
+        highTile = oldHighTile;
     }
 
     public void gameStateSave(){
-        Tile[][] copy = new Tile[4][4];
+        Tile[][] copyBoard = new Tile[4][4];
+        Integer copyScore = score;
+        Integer copyHighTile = highTile;
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
-                copy[i][j] = new Tile(board[i][j].getValue());
+                copyBoard[i][j] = new Tile(board[i][j].getValue());
             }
         }
-        gameState.push(copy);
+        gameState.push(copyBoard);
+        gameScore.push(copyScore);
+        gameHighTile.push(copyHighTile);
     }
 
-    public void gameValid(){
+    public int gameStateLength(){
+        return gameState.size();
+    }
+
+    public List<String> gameStateToString(){
+        String gameStateString = gameState.toString();
+        String gameScoreString = gameScore.toString();
+        String gameHighTileString = gameHighTile.toString();
+
+        List<String> fullGameState = new ArrayList<>();
+        fullGameState.add(gameStateString);
+        fullGameState.add(gameScoreString);
+        fullGameState.add(gameHighTileString);
+
+        saveGame = fullGameState;
+
+        return fullGameState;
+    }
+
+    public void writeStringsToFile(
+            List<String> stringsToWrite, String filePath,
+            boolean append
+    ) {
+        File file = Paths.get(filePath).toFile();
+        BufferedWriter bw = null;
+        try {
+            FileWriter fw = new FileWriter(file, append);
+            bw = new BufferedWriter(fw);
+            for (String string : stringsToWrite) {
+                bw.write(string, 0, string.length());
+                bw.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                bw.flush();
+                bw.close();
+            } catch (Exception e) {
+                System.out.println("Error in closing the BufferedWriter" + e);
+            }
+        }
+    }
+
+    public void saveGameFile(){
 
     }
 
-    public void move(){
+
+    public boolean getGameStatus(){
+        return gameStatus;
+    }
+
+    public void canMove(){
 
     }
 
@@ -137,6 +224,7 @@ public class _2048 {
         m.rotate(3);
         m.applyData(board);
         addTile();
+        gameStateSave();
     }
 
     // move logic for the board when the move down command is pressed.
@@ -149,6 +237,7 @@ public class _2048 {
         m.rotate(1);
         m.applyData(board);
         addTile();
+        gameStateSave();
     }
 
     // move logic for the board when the move left command is pressed.
@@ -161,6 +250,7 @@ public class _2048 {
         m.rotate(2);
         m.applyData(board);
         addTile();
+        gameStateSave();
     }
 
     // move logic for the board when the move right command is pressed.
@@ -171,6 +261,7 @@ public class _2048 {
         m.shift();
         m.applyData(board);
         addTile();
+        gameStateSave();
     }
 
     // holds the logic/helper classes for the previous move methods
@@ -210,8 +301,10 @@ public class _2048 {
             for (int row = 0; row < 4; row++) {
                 for (int col = 3; col > 0; col--) {
                     if (copy[row][col].getValue() == copy[row][col - 1].getValue()) {
+                        int newTileVal = copy[row][col].getValue() + copy[row][col - 1].getValue();
+                        score += newTileVal;
                         copy[row][col].setValue(
-                                copy[row][col].getValue() + copy[row][col - 1].getValue()
+                                newTileVal
                         );
                         copy[row][col - 1].setValue(0);
                     }
@@ -227,7 +320,6 @@ public class _2048 {
                         rot[x][3 - y] = new Tile(copy[y][x].getValue());
                     }
                 }
-
                 for (int i = 0; i < 4; i++) {
                     for (int j = 0; j < 4; j++) {
                         copy[i][j].setValue(rot[i][j].getValue());
@@ -237,9 +329,14 @@ public class _2048 {
         }
 
         public void applyData(Tile[][] blocks) {
+            int highestTile = 0;
             for (int i = 0; i < 4; i++) {
                 for (int j = 0; j < 4; j++) {
-                    blocks[i][j].setValue(copy[i][j].getValue());
+                    int tileValue = copy[i][j].getValue();
+                    blocks[i][j].setValue(tileValue);
+                    if(tileValue > highTile){
+                        highTile = tileValue;
+                    }
                 }
             }
         }
@@ -249,20 +346,20 @@ public class _2048 {
     public static void main(String args[]){
         _2048 game = new _2048();
         game.print();
-        game.addTile();
 
-        game.gameStateSave();
-        game.print();
         game.left();
-        game.gameStateSave();
-
         game.print();
+        game.gameStateToString();
+
         game.right();
-        game.gameStateSave();
-
         game.print();
-        game.previousMove();
-        game.print();
+        game.gameStateToString();
 
+        game.up();
+        game.up();
+
+        game.down();
+
+//        game.toString(game.board);
     }
 }
