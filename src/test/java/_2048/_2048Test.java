@@ -15,6 +15,7 @@ class _2048Test {
     _2048Test() throws IOException {
     }
 
+
     @org.junit.jupiter.api.Test
     void getHighTile() {
         List<Integer> testBoard = new ArrayList<>();
@@ -35,8 +36,8 @@ class _2048Test {
         testBoard.add(0); testBoard.add(16); testBoard.add(0); testBoard.add(0);
         game.setBoard(testBoard);
         Tile[][] savedBoard = game.getBoard();
-        game.left();
-        game.right();
+        game.left(true);
+        game.right(true);
         game.previousMove();
         Tile[][] previousBoard = game.getBoard();
         Assert.assertTrue(game.boardSameCheck(savedBoard,previousBoard));
@@ -72,22 +73,22 @@ class _2048Test {
         testBoard.add(0); testBoard.add(0); testBoard.add(0); testBoard.add(0);
         testBoard.add(0); testBoard.add(0); testBoard.add(0); testBoard.add(0);
         game.setBoard(testBoard);
-        game.left();
+        game.left(false);
         Assert.assertEquals(12, game.getScore());
     }
 
-    /*@org.junit.jupiter.api.Test
-    public void testSave() throws IOException {
-        List<Integer> testBoard = new ArrayList<>();
-        testBoard.add(2); testBoard.add(0); testBoard.add(2); testBoard.add(0);
-        testBoard.add(0); testBoard.add(0); testBoard.add(0); testBoard.add(0);
-        testBoard.add(0); testBoard.add(0); testBoard.add(0); testBoard.add(2);
-        testBoard.add(0); testBoard.add(0); testBoard.add(0); testBoard.add(0);
-        game.setBoard(testBoard);
-        game.setScore(0);
-        game.saveGameFile();
-        Assert.assertEquals("2,0,2,0,0,0,0,0,0,0,0,0,2,0,0,0,0", game.getSavedOutput());
-    }*/
+//    @org.junit.jupiter.api.Test
+//    public void testSave() throws IOException {
+//        List<Integer> testBoard = new ArrayList<>();
+//        testBoard.add(2); testBoard.add(0); testBoard.add(2); testBoard.add(0);
+//        testBoard.add(0); testBoard.add(0); testBoard.add(0); testBoard.add(0);
+//        testBoard.add(0); testBoard.add(0); testBoard.add(0); testBoard.add(2);
+//        testBoard.add(0); testBoard.add(0); testBoard.add(0); testBoard.add(0);
+//        game.setBoard(testBoard);
+//        game.setScore(0);
+//        game.saveGameFile();
+//        Assert.assertEquals("2,0,2,0,0,0,0,0,0,0,0,0,2,0,0,0,0", game.getSavedOutput());
+//    }
 
     @org.junit.jupiter.api.Test
     public void testSaveAndReload() throws IOException {
@@ -100,11 +101,67 @@ class _2048Test {
         Tile[][] savedBoard = game.getBoard();
         game.saveGameFile();
         game.reset();
-        game.left();
+        game.left(false);
         game.loadGameFile();
         Tile[][] reloadBoard = game.getBoard();
         Assert.assertTrue(game.boardSameCheck(savedBoard,reloadBoard));
     }
 
+    @org.junit.jupiter.api.Test
+    public void testEmptySaved() throws IOException {
+        game.setSavedOutput("");
+        game.saveGameFile();
+        game.loadGameFile();
+        Tile[][] gameBoard = game.getBoard();
+        _2048 defaultGame = new _2048();
+        Tile[][] defaultGameBoard = defaultGame.getBoard();
+        Assert.assertTrue(game.boardSameCheck(gameBoard,defaultGameBoard));
+    }
+
+    @org.junit.jupiter.api.Test
+    public void testEmptyWrongInput() throws IOException {
+        game.setSavedOutput("wrong");
+        game.saveGameFile();
+        game.loadGameFile();
+        Tile[][] gameBoard = game.getBoard();
+        _2048 defaultGame = new _2048();
+        Tile[][] defaultGameBoard = defaultGame.getBoard();
+        Assert.assertTrue(game.boardSameCheck(gameBoard,defaultGameBoard));
+    }
+
+    @org.junit.jupiter.api.Test
+    public void testEmptyIntegerInputOdd() throws IOException {
+        // Should restart board game as all tiles should be divisible by 2
+        game.setSavedOutput("2,0,2,0,14,0,0,0,3,0,0,0,0,0,0,0,0");
+        game.saveGameFile();
+        game.loadGameFile();
+        Tile[][] gameBoard = game.getBoard();
+        _2048 defaultGame = new _2048();
+        Tile[][] defaultGameBoard = defaultGame.getBoard();
+        Assert.assertTrue(game.boardSameCheck(gameBoard,defaultGameBoard));
+    }
+
+    @org.junit.jupiter.api.Test
+    public void testMoveRight() throws IOException {
+        // Should restart board game as all tiles should be divisible by 2
+        List<Integer> testBoard = new ArrayList<>();
+        testBoard.add(0); testBoard.add(0); testBoard.add(0); testBoard.add(2);
+        testBoard.add(2); testBoard.add(2); testBoard.add(2); testBoard.add(0);
+        testBoard.add(2); testBoard.add(0); testBoard.add(0); testBoard.add(2);
+        testBoard.add(2); testBoard.add(0); testBoard.add(0); testBoard.add(0);
+        game.setBoard(testBoard);
+        game.right(false);
+        Tile[][] testTile = game.getBoard();
+
+        _2048 defaultGame = new _2048();
+        List<Integer> expectedBoard = new ArrayList<>();
+        expectedBoard.add(0); expectedBoard.add(0); expectedBoard.add(0); expectedBoard.add(0);
+        expectedBoard.add(0); expectedBoard.add(0); expectedBoard.add(0); expectedBoard.add(0);
+        expectedBoard.add(0); expectedBoard.add(2); expectedBoard.add(0); expectedBoard.add(0);
+        expectedBoard.add(2); expectedBoard.add(4); expectedBoard.add(4); expectedBoard.add(2);
+        defaultGame.setBoard(expectedBoard);
+        Tile[][] expectedTile = defaultGame.getBoard();
+        Assert.assertTrue(game.boardSameCheck(testTile,expectedTile));
+    }
 
 }

@@ -87,7 +87,7 @@ public class Run2048 implements Runnable{
     private void loadInstructions() {
         JPanel panel = new JPanel();
 
-        String html = "<html><div style=\"font-size: 14; text-align: justify\">" +
+        String html = "<html><div style=\"font-size: 14; text-align: center\">" +
                 "2048 is a sensational and addictive game, prepared to be hooked! If you haven't <br>" +
                 "played before, don't worry. It's really easy. The goal of the game is to reach <br>" +
                 "the 2048 tile. <br><br>" +
@@ -96,7 +96,8 @@ public class Run2048 implements Runnable{
                 "the board will shift and a new tile will be added! Make sure you clear tiles <br>" +
                 "otherwise the board will be full of tiles and you will lose! Try and get a tile <br>" +
                 "to reach 2048 by adding tiles of the same value. There will be a popup when the <br>" +
-                "game is over. Use s to save the game and r to reload. <br><br>" +
+                "game is over. Use s to save the game and r to reload or restart game depending <br>" +
+                "on saved data. <br><br>" +
                 "You can click the delete button if you think you made a mistake and want to <br>" +
                 "change your move. If you want to challenge yourself, don't use this button! <br>" +
                 "Check the homepage to find users who have reached the 2048 tile! <br><br>" +

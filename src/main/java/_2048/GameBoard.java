@@ -29,25 +29,29 @@ public class GameBoard extends JPanel {
             public void keyPressed(KeyEvent e) {
                 if ( e.getKeyCode() == KeyEvent.VK_LEFT )
                 {
-                    game2048.up();
+                    game2048.up(true);
+                    gameState = game2048.getGameStatus();
                     updateStatus();
                     repaint();
                 }
                 else if ( e.getKeyCode() == KeyEvent.VK_RIGHT )
                 {
-                    game2048.down();
+                    game2048.down(true);
+                    gameState = game2048.getGameStatus();
                     updateStatus();
                     repaint();
                 }
                 else if ( e.getKeyCode() == KeyEvent.VK_UP )
                 {
-                    game2048.left();
+                    game2048.left(true);
+                    gameState = game2048.getGameStatus();
                     updateStatus();
                     repaint();
                 }
                 else if ( e.getKeyCode() == KeyEvent.VK_DOWN )
                 {
-                    game2048.right();
+                    game2048.right(true);
+                    gameState = game2048.getGameStatus();
                     updateStatus();
                     repaint();
                 }
@@ -133,37 +137,32 @@ public class GameBoard extends JPanel {
         g.drawLine(0, 300, 400, 300);
         g.drawLine(0, 400, 400, 400);
 
-        if (gameState == _2048.State.RUN) {
+        if (gameState == _2048.State.RUN || gameState == _2048.State.WIN || gameState == _2048.State.LOSE) {
             for (int i = 0; i < 4; i++) {
                 for (int j = 0; j < 4; j++) {
                     drawTile(g,game2048.getBoard()[i][j],i * 100,j * 100 );
                 }
             }
-        } else {
-            g.setColor(new Color(0xFFEBCD));
-            g.fillRoundRect(10, 10, 10, 10, 2, 2);
-
-            g.setColor(new Color(0xBBADA0).darker());
-            g.setFont(new Font("SansSerif", Font.BOLD, 10));
-            g.drawString("2048", 10, 10);
-
-            g.setFont(new Font("SansSerif", Font.BOLD, 20));
+        }
+        if (gameState != _2048.State.RUN) {
 
             if (gameState == _2048.State.WIN) {
-                g.drawString("You Win!", 390, 350);
+                g.drawString("You Win!, ENTER to restart", 390, 350);
 
             } else if (gameState == _2048.State.LOSE)
-                g.drawString("Game Over", 400, 350);
+                g.drawString("Game Over, ENTER to restart", 400, 350);
 
 
         }
         int score = game2048.getScore();
         int highestTile = game2048.getHighTile();
 
-        g.setColor(new Color(0xBBADA0));
-        g.drawString("Score: " + score, 10, 450);
-        g.drawString("Highest Tile: " + highestTile, 10, 475);
-
+        g.setColor(new Color(0,0,0));
+        g.setFont(new Font("SansSerif", Font.BOLD, 20));
+        g.drawString("Score: " + score, 10, 440);
+        g.drawString("Highest Tile: " + highestTile, 10, 470);
+        g.setFont(new Font("SansSerif", Font.BOLD, 12));
+        g.drawString("S - save, R - reload, Enter - restart, Delete - Go back", 10,490);
 
     }
 

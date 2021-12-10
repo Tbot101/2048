@@ -182,7 +182,14 @@ public class _2048 {
             savedOutput += state.get(j) + ",";
         }
         savedOutput += Integer.toString(score);
-        }
+    }
+
+    // Testing
+    public void setSavedOutput(String newOutput){
+        savedOutput = "";
+        savedOutput += newOutput;
+    }
+
 
     public void writeStringsToFile(
             String filePath
@@ -233,7 +240,7 @@ public class _2048 {
             reader = new BufferedReader(new FileReader(PATH_TO_SAVED_GAMES));
             data += reader.readLine();
 
-            if(data == ""){
+            if(data == "" || !checkCorrectInput(data)){
                 for (int i = 0; i < 4; i++) {
                     for (int j = 0; j < 4; j++) {
                         board[i][j] = new Tile();
@@ -244,24 +251,21 @@ public class _2048 {
                 score = 0;
                 gameStateSave();
                 saveGameFile();
-            }
-            System.out.println(data);
-
-
-            int tileCounter = 0;
-            for (int a = 0; a < 4; a++) {
-                for (int b = 0; b < 4; b++) {
-                    board[a][b] = new Tile(Integer.parseInt(extractColumn(data,tileCounter)));
-                    tileCounter+=1;
+            } else{
+                int tileCounter = 0;
+                for (int a = 0; a < 4; a++) {
+                    for (int b = 0; b < 4; b++) {
+                        board[a][b] = new Tile(Integer.parseInt(extractColumn(data,tileCounter)));
+                        tileCounter+=1;
+                    }
                 }
+                int scoreGame = Integer.parseInt(String.valueOf(extractColumn(data,tileCounter)));
+                score = scoreGame;
+                gameState.clear();
+                gameScore.clear();
+                gameState.push(board);
+                gameScore.push(scoreGame);
             }
-            int scoreGame = Integer.parseInt(String.valueOf(extractColumn(data,tileCounter)));
-            score = scoreGame;
-            gameState.clear();
-            gameScore.clear();
-            gameState.push(board);
-            gameScore.push(scoreGame);
-
 
         } catch (FileNotFoundException e) {
             File fileCreate = new File(PATH_TO_SAVED_GAMES);
@@ -276,8 +280,23 @@ public class _2048 {
             }
         }
     }
+
+    private boolean checkCorrectInput(String data) {
+        int counter = 0;
+        for(int i = 0; i < 17; i++){
+            int val = Integer.parseInt(extractColumn(data,i));
+            if(val % 2 == 0){
+                counter ++;
+            }
+        }
+        if(counter == 17){
+            return true;
+        }
+        return false;
+    }
+
     // Returns the status of the Game
-    public void getGameStatus(){
+    public State getGameStatus(){
         gameStatus = State.RUN;
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
@@ -289,6 +308,7 @@ public class _2048 {
         if(!canMove()){
             gameStatus = State.LOSE;
         }
+        return gameStatus;
     }
     // Checks if it is possible for further moves to occur
     public boolean canMove(){
@@ -297,7 +317,7 @@ public class _2048 {
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
                 Integer tileVal = board[i][j].getValue();
-                copyBoard[i][j] = new Tile();
+                copyBoard[i][j] = new Tile(tileVal);
             }
         }
         int notPossibleMoves = 0;
@@ -391,7 +411,7 @@ public class _2048 {
         return notSame;
     }
 
-    public void right() {
+    public void right(boolean test) {
         boolean same = false;
         Direction newB = new Direction(board, score);
         newB.move();
@@ -402,7 +422,7 @@ public class _2048 {
         }
         newB.change(board);
         score = newB.getScore();
-        if(same){
+        if(same && test){
             addTile();
             gameStateSave();
             saveGameFile();
@@ -410,7 +430,7 @@ public class _2048 {
         }
     }
 
-    public void left() {
+    public void left(boolean test) {
         boolean same = false;
         Direction newB = new Direction(board, score);
         newB.spin(2);
@@ -423,7 +443,7 @@ public class _2048 {
         }
         newB.change(board);
         score = newB.getScore();
-        if(same){
+        if(same && test){
             addTile();
             gameStateSave();
             saveGameFile();
@@ -431,7 +451,7 @@ public class _2048 {
         }
     }
 
-    public void up() {
+    public void up(boolean test) {
         boolean same = false;
         Direction newB = new Direction(board, score);
         newB.spin(1);
@@ -444,7 +464,7 @@ public class _2048 {
         }
         newB.change(board);
         score = newB.getScore();
-        if(same){
+        if(same && test){
             addTile();
             gameStateSave();
             saveGameFile();
@@ -452,7 +472,7 @@ public class _2048 {
         }
     }
 
-    public void down() {
+    public void down(boolean test) {
         boolean same = false;
         Direction newB = new Direction(board, score);
         newB.spin(3);
@@ -465,7 +485,7 @@ public class _2048 {
         }
         newB.change(board);
         score = newB.getScore();
-        if(same){
+        if(same && test){
             addTile();
             gameStateSave();
             saveGameFile();
