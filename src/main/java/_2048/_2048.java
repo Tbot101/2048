@@ -27,13 +27,8 @@ public class _2048 {
         reset();
     }
 
-    public void reset() throws IOException {
+    public void reset() {
         if (gameStatus != State.RUN) {
-//            board = new Tile[4][4];
-//            gameStatus = State.RUN;
-//            gameState.clear();
-//            loadGameFile();
-//            saveGameBoard();
             board = new Tile[4][4];
             gameState.clear();
             for (int i = 0; i < 4; i++) {
@@ -119,13 +114,26 @@ public class _2048 {
         board[i][j] = new Tile(value);
     }
 
+    // For Testing
+    public void setScore(int value) {
+        score = value;
+        gameScore.push(score);
+    }
+
+    // For Testing
+    public String getSavedOutput() {
+        return savedOutput;
+    }
+
     public void previousMove(){
-        gameState.pop();
-        gameScore.pop();
-        Tile[][] oldBoard = gameState.pop();
-        Integer oldScore = gameScore.pop();
-        board = oldBoard;
-        score = oldScore;
+        if(gameState.size()!=0){
+            gameState.pop();
+            gameScore.pop();
+            Tile[][] oldBoard = gameState.pop();
+            Integer oldScore = gameScore.pop();
+            board = oldBoard;
+            score = oldScore;
+        }
     }
 
     public void gameStateSave(){
@@ -157,41 +165,34 @@ public class _2048 {
     }
 
     public void saveGameBoard(){
-        List<List<Integer>> listState = new ArrayList<>();
-        List<Integer> listScore = new ArrayList<>();
         Stack<Tile[][]> gameStateClone = (Stack<Tile[][]>) gameState.clone();
         Stack<Integer> gameScoreClone = (Stack<Integer>) gameScore.clone();
-        while(gameStateClone.size()!=0){
-            List<Integer> state = new ArrayList<>();
-            Tile[][] stateTile = gameStateClone.pop();
-            for (int i = 0; i < 4; i++) {
-                for (int j = 0; j < 4; j++) {
-                    state.add(stateTile[i][j].getValue());
-                }
+        List<Integer> state = new ArrayList<>();
+        Tile[][] stateTile = gameStateClone.pop();
+        int score;
+        for (int i = 3; i >= 0; i--) {
+            for (int j = 3; j >= 0; j--) {
+                state.add(stateTile[i][j].getValue());
+                System.out.println(stateTile[i][j].getValue());
             }
-            listState.add(state);
         }
-        while(gameScoreClone.size()!=0){
-            listScore.add(gameScoreClone.pop());
+        score = gameScoreClone.pop();
+        savedOutput = "";
+        for(int j = state.size()-1;j>=0;j--){
+            savedOutput += state.get(j) + ",";
         }
-        for(int i = listState.size(); i>=0; i--){
-            List<Integer> stateToInt = listState.get(i);
-            for(int j = stateToInt.size();j>=0;j--){
-                savedOutput += Integer.toString(stateToInt.get(j));
-            }
-            savedOutput += Integer.toString(listScore.get(i));
+        savedOutput += Integer.toString(score);
         }
-    }
 
     public void writeStringsToFile(
-            String filePath,
-            boolean append
+            String filePath
     ) {
         File file = Paths.get(filePath).toFile();
         BufferedWriter bw = null;
         try {
-            FileWriter fw = new FileWriter(file, append);
+            FileWriter fw = new FileWriter(file, false);
             bw = new BufferedWriter(fw);
+            saveGameBoard();
             String output = savedOutput;
             bw.write(output, 0, output.length());
             bw.newLine();
@@ -208,36 +209,31 @@ public class _2048 {
     }
 
     public void saveGameFile(){
-        writeStringsToFile(PATH_TO_SAVED_GAMES,false);
+        writeStringsToFile(PATH_TO_SAVED_GAMES);
     }
 
+    // Parses through the saved data in a systemic manner
+    static String extractColumn(String csvLine, int csvColumn) {
+        if (csvLine == null) {
+            return null;
+        }
+        String[] splitString = csvLine.split(",", -1);
+        if (splitString.length > csvColumn) {
+            String extractString = splitString[csvColumn];
+            return extractString;
+        }
+        return null;
+    }
+
+    // Loads the saved game data onto the grid
     public void loadGameFile() throws IOException {
         BufferedReader reader = null;
         try{
-            String data = null;
+            String data = "";
             reader = new BufferedReader(new FileReader(PATH_TO_SAVED_GAMES));
+            data += reader.readLine();
 
-            while (reader.readLine() != null) {
-                data += reader.readLine();
-                System.out.println(data);
-            }
-            List<String> everyGame = Arrays.asList(data.split("(?<=\\G.{17})"));
-
-            for(int i = 0; i < everyGame.size(); i++){
-                String singleGameData = everyGame.get(i);
-                int tileCounter = 0;
-                for (int a = 0; a < 4; a++) {
-                    for (int b = 0; b < 4; b++) {
-                        board[a][b] = new Tile(Integer.parseInt(String.valueOf(singleGameData.charAt(tileCounter))));
-                        tileCounter+=1;
-                    }
-                }
-                int scoreGame = Integer.parseInt(String.valueOf(singleGameData.charAt(16)));
-                gameState.push(board);
-                gameScore.push(scoreGame);
-            }
-
-            if(data == null){
+            if(data == ""){
                 for (int i = 0; i < 4; i++) {
                     for (int j = 0; j < 4; j++) {
                         board[i][j] = new Tile();
@@ -247,8 +243,25 @@ public class _2048 {
                 addTile();
                 score = 0;
                 gameStateSave();
+                saveGameFile();
             }
             System.out.println(data);
+
+
+            int tileCounter = 0;
+            for (int a = 0; a < 4; a++) {
+                for (int b = 0; b < 4; b++) {
+                    board[a][b] = new Tile(Integer.parseInt(extractColumn(data,tileCounter)));
+                    tileCounter+=1;
+                }
+            }
+            int scoreGame = Integer.parseInt(String.valueOf(extractColumn(data,tileCounter)));
+            score = scoreGame;
+            gameState.clear();
+            gameScore.clear();
+            gameState.push(board);
+            gameScore.push(scoreGame);
+
 
         } catch (FileNotFoundException e) {
             File fileCreate = new File(PATH_TO_SAVED_GAMES);
@@ -263,7 +276,7 @@ public class _2048 {
             }
         }
     }
-
+    // Returns the status of the Game
     public void getGameStatus(){
         gameStatus = State.RUN;
         for (int i = 0; i < 4; i++) {
@@ -277,87 +290,81 @@ public class _2048 {
             gameStatus = State.LOSE;
         }
     }
-
+    // Checks if it is possible for further moves to occur
     public boolean canMove(){
         Tile[][] copyBoard;
-        int numFillTiles = 0;
         copyBoard = new Tile[4][4];
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
                 Integer tileVal = board[i][j].getValue();
                 copyBoard[i][j] = new Tile();
-                if(tileVal !=  null){
-                    numFillTiles ++;
-                }
             }
         }
         int notPossibleMoves = 0;
         boolean canMove = true;
-        if(numFillTiles == 16){
-            for (int i = 0; i < 4; i++) {
-                for (int j = 0; j < 4; j++) {
-                    Integer tileVal = copyBoard[i][j].getValue();
-                        if(i==0 && j == 0){
-                            if(tileVal != copyBoard[i+1][j].getValue()
-                                    && tileVal != copyBoard[i][j+1].getValue()){
-                                notPossibleMoves ++;
-                            }
-                        }
-                        if((i==1 || i==2) && j == 0){
-                            if(tileVal != copyBoard[i+1][j].getValue()
-                                && tileVal != copyBoard[i-1][j].getValue()
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                Integer tileVal = copyBoard[i][j].getValue();
+                    if(i==0 && j == 0){
+                        if(tileVal != copyBoard[i+1][j].getValue()
                                 && tileVal != copyBoard[i][j+1].getValue()){
-                                notPossibleMoves ++;
-                            }
+                            notPossibleMoves ++;
                         }
-                        if(i==3 && j == 0){
-                            if(tileVal != copyBoard[i-1][j].getValue()
-                                    && tileVal != copyBoard[i][j+1].getValue()){
-                                notPossibleMoves ++;
-                            }
+                    }
+                    if((i==1 || i==2) && j == 0){
+                        if(tileVal != copyBoard[i+1][j].getValue()
+                            && tileVal != copyBoard[i-1][j].getValue()
+                            && tileVal != copyBoard[i][j+1].getValue()){
+                            notPossibleMoves ++;
                         }
-                        if(i== 0 && (j == 1 || j==2)){
-                            if(tileVal != copyBoard[i+1][j].getValue()
-                                    && tileVal != copyBoard[i][j-1].getValue()
-                                    && tileVal != copyBoard[i][j+1].getValue()){
-                                notPossibleMoves ++;
-                            }
+                    }
+                    if(i==3 && j == 0){
+                        if(tileVal != copyBoard[i-1][j].getValue()
+                                && tileVal != copyBoard[i][j+1].getValue()){
+                            notPossibleMoves ++;
                         }
-                        if(i== 0 && j == 3){
-                            if(tileVal != copyBoard[i+1][j].getValue()
-                                    && tileVal != copyBoard[i][j-1].getValue()){
-                                notPossibleMoves ++;
-                            }
+                    }
+                    if(i== 0 && (j == 1 || j==2)){
+                        if(tileVal != copyBoard[i+1][j].getValue()
+                                && tileVal != copyBoard[i][j-1].getValue()
+                                && tileVal != copyBoard[i][j+1].getValue()){
+                            notPossibleMoves ++;
                         }
-                        if((i== 1 || i == 2) && (j == 1 || j==2)){
-                            if(tileVal != copyBoard[i+1][j].getValue()
-                                    && tileVal != copyBoard[i-1][j].getValue()
-                                    && tileVal != copyBoard[i][j-1].getValue()
-                                    && tileVal != copyBoard[i][j+1].getValue()){
-                                notPossibleMoves ++;
-                            }
+                    }
+                    if(i== 0 && j == 3){
+                        if(tileVal != copyBoard[i+1][j].getValue()
+                                && tileVal != copyBoard[i][j-1].getValue()){
+                            notPossibleMoves ++;
                         }
-                        if((i== 1 || i == 2) && j == 3){
-                            if(tileVal != copyBoard[i+1][j].getValue()
-                                    && tileVal != copyBoard[i-1][j].getValue()
-                                    && tileVal != copyBoard[i][j-1].getValue()){
-                                notPossibleMoves ++;
-                            }
+                    }
+                    if((i== 1 || i == 2) && (j == 1 || j==2)){
+                        if(tileVal != copyBoard[i+1][j].getValue()
+                                && tileVal != copyBoard[i-1][j].getValue()
+                                && tileVal != copyBoard[i][j-1].getValue()
+                                && tileVal != copyBoard[i][j+1].getValue()){
+                            notPossibleMoves ++;
                         }
-                        if(i== 3 && j == 3){
-                            if(tileVal != copyBoard[i-1][j].getValue()
-                                    && tileVal != copyBoard[i][j-1].getValue()){
-                                notPossibleMoves ++;
-                            }
+                    }
+                    if((i== 1 || i == 2) && j == 3){
+                        if(tileVal != copyBoard[i+1][j].getValue()
+                                && tileVal != copyBoard[i-1][j].getValue()
+                                && tileVal != copyBoard[i][j-1].getValue()){
+                            notPossibleMoves ++;
                         }
-                        if(i== 3 && (j == 1 || j == 2)){
-                            if(tileVal != copyBoard[i-1][j].getValue()
-                                    && tileVal != copyBoard[i][j+1].getValue()
-                                    && tileVal != copyBoard[i][j-1].getValue()){
-                                notPossibleMoves ++;
-                            }
+                    }
+                    if(i== 3 && j == 3){
+                        if(tileVal != copyBoard[i-1][j].getValue()
+                                && tileVal != copyBoard[i][j-1].getValue()){
+                            notPossibleMoves ++;
                         }
-                }
+                    }
+                    if(i== 3 && (j == 1 || j == 2)){
+                        if(tileVal != copyBoard[i-1][j].getValue()
+                                && tileVal != copyBoard[i][j+1].getValue()
+                                && tileVal != copyBoard[i][j-1].getValue()){
+                            notPossibleMoves ++;
+                        }
+                    }
             }
         }
         if(notPossibleMoves == 16){

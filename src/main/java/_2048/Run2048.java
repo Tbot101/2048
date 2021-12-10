@@ -73,33 +73,6 @@ public class Run2048 implements Runnable{
         GBC.gridwidth = 6;
         FRAME.add(board, GBC);
 
-        // Reset button
-        /*JPanel control_panel = new JPanel();
-        GBC.gridx = 5;
-        GBC.gridy = -5;
-        FRAME.add(control_panel, GBC);
-
-
-        JButton reset = new JButton("Reset");
-        reset.setFont(new Font(Font.DIALOG, Font.PLAIN, 18));
-        reset.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                board.reset();
-            }
-        });
-        control_panel.add(reset);*/
-
-        JButton backButton = new JButton("Back");
-        backButton.setFont(new Font(Font.DIALOG, Font.PLAIN, 18));
-        backButton.addActionListener(e -> {
-            FRAME.getContentPane().removeAll();
-            screenHome();
-        });
-        GBC.gridx = 8;
-        GBC.gridy = -8;
-        status_panel.add(backButton, GBC);
-
-
         // Put the frame on the screen
         FRAME.pack();
         FRAME.validate();
@@ -118,12 +91,12 @@ public class Run2048 implements Runnable{
                 "2048 is a sensational and addictive game, prepared to be hooked! If you haven't <br>" +
                 "played before, don't worry. It's really easy. The goal of the game is to reach <br>" +
                 "the 2048 tile. <br><br>" +
-                "Use the arrow keys to move the tiles up, down, left or right or WSAD. If the tiles are <br>" +
+                "Use the arrow keys to move the tiles up, down, left or right. If the tiles are <br>" +
                 "the same they will add together and double in value. At the end of each turn <br>" +
                 "the board will shift and a new tile will be added! Make sure you clear tiles <br>" +
                 "otherwise the board will be full of tiles and you will lose! Try and get a tile <br>" +
                 "to reach 2048 by adding tiles of the same value. There will be a popup when the <br>" +
-                "game is over. <br><br>" +
+                "game is over. Use s to save the game and r to reload. <br><br>" +
                 "You can click the delete button if you think you made a mistake and want to <br>" +
                 "change your move. If you want to challenge yourself, don't use this button! <br>" +
                 "Check the homepage to find users who have reached the 2048 tile! <br><br>" +

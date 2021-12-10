@@ -34,7 +34,12 @@ class _2048Test {
         testBoard.add(0); testBoard.add(0); testBoard.add(8); testBoard.add(0);
         testBoard.add(0); testBoard.add(16); testBoard.add(0); testBoard.add(0);
         game.setBoard(testBoard);
-        game.gameStateSave();
+        Tile[][] savedBoard = game.getBoard();
+        game.left();
+        game.right();
+        game.previousMove();
+        Tile[][] previousBoard = game.getBoard();
+        Assert.assertTrue(game.boardSameCheck(savedBoard,previousBoard));
     }
 
     @org.junit.jupiter.api.Test
@@ -68,10 +73,38 @@ class _2048Test {
         testBoard.add(0); testBoard.add(0); testBoard.add(0); testBoard.add(0);
         game.setBoard(testBoard);
         game.left();
-        Assert.assertEquals(game.getScore(), 12);
+        Assert.assertEquals(12, game.getScore());
     }
 
+    /*@org.junit.jupiter.api.Test
+    public void testSave() throws IOException {
+        List<Integer> testBoard = new ArrayList<>();
+        testBoard.add(2); testBoard.add(0); testBoard.add(2); testBoard.add(0);
+        testBoard.add(0); testBoard.add(0); testBoard.add(0); testBoard.add(0);
+        testBoard.add(0); testBoard.add(0); testBoard.add(0); testBoard.add(2);
+        testBoard.add(0); testBoard.add(0); testBoard.add(0); testBoard.add(0);
+        game.setBoard(testBoard);
+        game.setScore(0);
+        game.saveGameFile();
+        Assert.assertEquals("2,0,2,0,0,0,0,0,0,0,0,0,2,0,0,0,0", game.getSavedOutput());
+    }*/
+
     @org.junit.jupiter.api.Test
-    void gameValid() {
+    public void testSaveAndReload() throws IOException {
+        List<Integer> testBoard = new ArrayList<>();
+        testBoard.add(2); testBoard.add(0); testBoard.add(0); testBoard.add(2);
+        testBoard.add(4); testBoard.add(4); testBoard.add(0); testBoard.add(0);
+        testBoard.add(0); testBoard.add(0); testBoard.add(0); testBoard.add(0);
+        testBoard.add(0); testBoard.add(0); testBoard.add(0); testBoard.add(0);
+        game.setBoard(testBoard);
+        Tile[][] savedBoard = game.getBoard();
+        game.saveGameFile();
+        game.reset();
+        game.left();
+        game.loadGameFile();
+        Tile[][] reloadBoard = game.getBoard();
+        Assert.assertTrue(game.boardSameCheck(savedBoard,reloadBoard));
     }
+
+
 }

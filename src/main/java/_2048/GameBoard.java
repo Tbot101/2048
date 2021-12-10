@@ -27,25 +27,25 @@ public class GameBoard extends JPanel {
         addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                if ( e.getKeyChar() == 'a' || e.getKeyCode() == KeyEvent.VK_LEFT )
+                if ( e.getKeyCode() == KeyEvent.VK_LEFT )
                 {
                     game2048.up();
                     updateStatus();
                     repaint();
                 }
-                else if ( e.getKeyChar() == 'd' || e.getKeyCode() == KeyEvent.VK_RIGHT )
+                else if ( e.getKeyCode() == KeyEvent.VK_RIGHT )
                 {
                     game2048.down();
                     updateStatus();
                     repaint();
                 }
-                else if ( e.getKeyChar() == 'w' || e.getKeyCode() == KeyEvent.VK_UP )
+                else if ( e.getKeyCode() == KeyEvent.VK_UP )
                 {
                     game2048.left();
                     updateStatus();
                     repaint();
                 }
-                else if ( e.getKeyChar() == 's' || e.getKeyCode() == KeyEvent.VK_DOWN )
+                else if ( e.getKeyCode() == KeyEvent.VK_DOWN )
                 {
                     game2048.right();
                     updateStatus();
@@ -69,6 +69,18 @@ public class GameBoard extends JPanel {
                         ex.printStackTrace();
                     }
                     repaint();
+                } else if ( e.getKeyChar() == 's' )
+                {
+                    game2048.saveGameFile();
+                } else if ( e.getKeyChar() == 'r' )
+                {
+                    try {
+                        game2048.loadGameFile();
+                        updateStatus();
+                        repaint();
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
                 }
             }
         });
@@ -151,6 +163,8 @@ public class GameBoard extends JPanel {
         g.setColor(new Color(0xBBADA0));
         g.drawString("Score: " + score, 10, 450);
         g.drawString("Highest Tile: " + highestTile, 10, 475);
+
+
     }
 
     public void drawTile(Graphics g, Tile tile, int x, int y){
