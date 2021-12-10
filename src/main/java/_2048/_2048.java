@@ -2,10 +2,7 @@ package _2048;
 
 import com.sun.org.apache.xerces.internal.xs.StringList;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Paths;
 import java.util.*;
 
@@ -15,31 +12,41 @@ public class _2048 {
     private int highTile;
     private Stack<Tile[][]> gameState = new Stack<>();
     private Stack<Integer> gameScore = new Stack<>();
-    private Stack<Integer> gameHighTile = new Stack<>();
     private List<String> saveGame = new ArrayList<>();
     static final String PATH_TO_SAVED_GAMES = "files/saved_game.txt";
+    private String savedOutput = "";
 
-    private boolean gameStatus;
+    enum State {
+        RUN, WIN, LOSE
+    }
+    private State gameStatus;
+
     private int MAX_INT = 2048;
 
-    public _2048(){
+    public _2048() throws IOException {
         reset();
     }
 
-    public void reset() {
-        board = new Tile[4][4];
-        gameStatus = true;
-        gameState.clear();
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++) {
-                board[i][j] = new Tile();
+    public void reset() throws IOException {
+        if (gameStatus != State.RUN) {
+//            board = new Tile[4][4];
+//            gameStatus = State.RUN;
+//            gameState.clear();
+//            loadGameFile();
+//            saveGameBoard();
+            board = new Tile[4][4];
+            gameState.clear();
+            for (int i = 0; i < 4; i++) {
+                for (int j = 0; j < 4; j++) {
+                    board[i][j] = new Tile();
+                }
             }
+            addTile();
+            addTile();
+            score = 0;
+            highTile = getHighTile();
+            gameStateSave();
         }
-        addTile();
-        addTile();
-        score = 0;
-        highTile = getHighTile();
-        gameStateSave();
     }
 
     public Tile[][] getBoard(){
@@ -48,17 +55,6 @@ public class _2048 {
 
     public int getScore(){
         return score;
-    }
-
-    public boolean gameStateBool() {
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++) {
-                if (board[i][j].getValue() == MAX_INT) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     public void print() {
@@ -85,18 +81,6 @@ public class _2048 {
         System.out.println("Score: "+ score);
     }
 
-    public String toString(Tile[][] board){
-        String boardString = "";
-        for(int i = 0; i<4; i++){
-            for(int j=0; j<4;j++){
-                int tileVal = board[i][j].getValue();
-                boardString += tileVal;
-            }
-            boardString += "\n";
-        }
-        System.out.println(boardString);
-        return boardString;
-    }
 
     public int getHighTile() {
         int highTile = 0;
@@ -130,22 +114,23 @@ public class _2048 {
         board[newPos[0]][newPos[1]] = new Tile(newTileVal);
     }
 
+    // For Testing
+    public void addTile(int i, int j, int value) {
+        board[i][j] = new Tile(value);
+    }
+
     public void previousMove(){
         gameState.pop();
         gameScore.pop();
-        gameHighTile.pop();
         Tile[][] oldBoard = gameState.pop();
         Integer oldScore = gameScore.pop();
-        Integer oldHighTile = gameHighTile.pop();
         board = oldBoard;
         score = oldScore;
-        highTile = oldHighTile;
     }
 
     public void gameStateSave(){
         Tile[][] copyBoard = new Tile[4][4];
         Integer copyScore = score;
-        Integer copyHighTile = highTile;
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
                 copyBoard[i][j] = new Tile(board[i][j].getValue());
@@ -153,30 +138,53 @@ public class _2048 {
         }
         gameState.push(copyBoard);
         gameScore.push(copyScore);
-        gameHighTile.push(copyHighTile);
     }
 
     public int gameStateLength(){
         return gameState.size();
     }
 
-    public List<String> gameStateToString(){
-        String gameStateString = gameState.toString();
-        String gameScoreString = gameScore.toString();
-        String gameHighTileString = gameHighTile.toString();
+    public void setBoard(List<Integer> values){
+        if(values.size() == 16){
+            int counter = 0;
+            for (int i = 0; i < 4; i++) {
+                for (int j = 0; j < 4; j++) {
+                    board[i][j].setValue(values.get(counter));
+                    counter ++;
+                }
+            }
+        }
+    }
 
-        List<String> fullGameState = new ArrayList<>();
-        fullGameState.add(gameStateString);
-        fullGameState.add(gameScoreString);
-        fullGameState.add(gameHighTileString);
-
-        saveGame = fullGameState;
-
-        return fullGameState;
+    public void saveGameBoard(){
+        List<List<Integer>> listState = new ArrayList<>();
+        List<Integer> listScore = new ArrayList<>();
+        Stack<Tile[][]> gameStateClone = (Stack<Tile[][]>) gameState.clone();
+        Stack<Integer> gameScoreClone = (Stack<Integer>) gameScore.clone();
+        while(gameStateClone.size()!=0){
+            List<Integer> state = new ArrayList<>();
+            Tile[][] stateTile = gameStateClone.pop();
+            for (int i = 0; i < 4; i++) {
+                for (int j = 0; j < 4; j++) {
+                    state.add(stateTile[i][j].getValue());
+                }
+            }
+            listState.add(state);
+        }
+        while(gameScoreClone.size()!=0){
+            listScore.add(gameScoreClone.pop());
+        }
+        for(int i = listState.size(); i>=0; i--){
+            List<Integer> stateToInt = listState.get(i);
+            for(int j = stateToInt.size();j>=0;j--){
+                savedOutput += Integer.toString(stateToInt.get(j));
+            }
+            savedOutput += Integer.toString(listScore.get(i));
+        }
     }
 
     public void writeStringsToFile(
-            List<String> stringsToWrite, String filePath,
+            String filePath,
             boolean append
     ) {
         File file = Paths.get(filePath).toFile();
@@ -184,10 +192,9 @@ public class _2048 {
         try {
             FileWriter fw = new FileWriter(file, append);
             bw = new BufferedWriter(fw);
-            for (String string : stringsToWrite) {
-                bw.write(string, 0, string.length());
-                bw.newLine();
-            }
+            String output = savedOutput;
+            bw.write(output, 0, output.length());
+            bw.newLine();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -201,165 +208,281 @@ public class _2048 {
     }
 
     public void saveGameFile(){
-
+        writeStringsToFile(PATH_TO_SAVED_GAMES,false);
     }
 
+    public void loadGameFile() throws IOException {
+        BufferedReader reader = null;
+        try{
+            String data = null;
+            reader = new BufferedReader(new FileReader(PATH_TO_SAVED_GAMES));
 
-    public boolean getGameStatus(){
-        return gameStatus;
-    }
-
-    public void canMove(){
-
-    }
-
-
-    // move logic for the board when the move up command is pressed.
-    public void up() {
-        Move m = new Move(board);
-        m.rotate(1);
-        m.shift();
-        m.compare();
-        m.shift();
-        m.rotate(3);
-        m.applyData(board);
-        addTile();
-        gameStateSave();
-    }
-
-    // move logic for the board when the move down command is pressed.
-    public void down() {
-        Move m = new Move(board);
-        m.rotate(3);
-        m.shift();
-        m.compare();
-        m.shift();
-        m.rotate(1);
-        m.applyData(board);
-        addTile();
-        gameStateSave();
-    }
-
-    // move logic for the board when the move left command is pressed.
-    public void left() {
-        Move m = new Move(board);
-        m.rotate(2);
-        m.shift();
-        m.compare();
-        m.shift();
-        m.rotate(2);
-        m.applyData(board);
-        addTile();
-        gameStateSave();
-    }
-
-    // move logic for the board when the move right command is pressed.
-    public void right() {
-        Move m = new Move(board);
-        m.shift();
-        m.compare();
-        m.shift();
-        m.applyData(board);
-        addTile();
-        gameStateSave();
-    }
-
-    // holds the logic/helper classes for the previous move methods
-    // board is processed as if the right key is always pressed
-    // if a different direction key is pressed, the board is rotated to the
-    // appropriate state and then back
-    private class Move {
-        private Tile[][] copy;
-
-        public Move(Tile[][] blocks) {
-            copy = new Tile[4][4];
-            for (int i = 0; i < 4; i++) {
-                for (int j = 0; j < 4; j++) {
-                    copy[i][j] = new Tile(blocks[i][j].getValue());
-                }
+            while (reader.readLine() != null) {
+                data += reader.readLine();
+                System.out.println(data);
             }
-        }
+            List<String> everyGame = Arrays.asList(data.split("(?<=\\G.{17})"));
 
-        public void shift() {
-            for (int row = 0; row < 4; row++) {
-                for (int col = 3; col >= 0; col--) {
-                    if (copy[row][col].getValue() == 0) {
-                        int i = 1;
-                        while (col - i >= 0 && copy[row][col - i].getValue() == 0) {
-                            i++;
-                        }
-                        if (col - i >= 0) {
-                            copy[row][col].setValue(copy[row][col - i].getValue());
-                            copy[row][col - i].setValue(0);
-                        }
+            for(int i = 0; i < everyGame.size(); i++){
+                String singleGameData = everyGame.get(i);
+                int tileCounter = 0;
+                for (int a = 0; a < 4; a++) {
+                    for (int b = 0; b < 4; b++) {
+                        board[a][b] = new Tile(Integer.parseInt(String.valueOf(singleGameData.charAt(tileCounter))));
+                        tileCounter+=1;
                     }
                 }
+                int scoreGame = Integer.parseInt(String.valueOf(singleGameData.charAt(16)));
+                gameState.push(board);
+                gameScore.push(scoreGame);
             }
-        }
 
-        public void compare() {
-            for (int row = 0; row < 4; row++) {
-                for (int col = 3; col > 0; col--) {
-                    if (copy[row][col].getValue() == copy[row][col - 1].getValue()) {
-                        int newTileVal = copy[row][col].getValue() + copy[row][col - 1].getValue();
-                        score += newTileVal;
-                        copy[row][col].setValue(
-                                newTileVal
-                        );
-                        copy[row][col - 1].setValue(0);
-                    }
-                }
-            }
-        }
-
-        public void rotate(int times) {
-            for (int t = 0; t < times; t++) {
-                Tile[][] rot = new Tile[4][4];
-                for (int y = 0; y < rot.length; y++) {
-                    for (int x = 0; x < rot[0].length; x++) {
-                        rot[x][3 - y] = new Tile(copy[y][x].getValue());
-                    }
-                }
+            if(data == null){
                 for (int i = 0; i < 4; i++) {
                     for (int j = 0; j < 4; j++) {
-                        copy[i][j].setValue(rot[i][j].getValue());
+                        board[i][j] = new Tile();
                     }
                 }
+                addTile();
+                addTile();
+                score = 0;
+                gameStateSave();
             }
-        }
+            System.out.println(data);
 
-        public void applyData(Tile[][] blocks) {
-            int highestTile = 0;
-            for (int i = 0; i < 4; i++) {
-                for (int j = 0; j < 4; j++) {
-                    int tileValue = copy[i][j].getValue();
-                    blocks[i][j].setValue(tileValue);
-                    if(tileValue > highTile){
-                        highTile = tileValue;
-                    }
-                }
+        } catch (FileNotFoundException e) {
+            File fileCreate = new File(PATH_TO_SAVED_GAMES);
+            fileCreate.createNewFile();
+            reset();
+        } finally {
+            try {
+                if (reader != null)
+                    reader.close();
+            } catch (IOException ex) {
+                ex.printStackTrace();
             }
         }
     }
 
+    public void getGameStatus(){
+        gameStatus = State.RUN;
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                if (board[i][j].getValue() == MAX_INT) {
+                    gameStatus = State.WIN;
+                }
+            }
+        }
+        if(!canMove()){
+            gameStatus = State.LOSE;
+        }
+    }
 
-    public static void main(String args[]){
+    public boolean canMove(){
+        Tile[][] copyBoard;
+        int numFillTiles = 0;
+        copyBoard = new Tile[4][4];
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                Integer tileVal = board[i][j].getValue();
+                copyBoard[i][j] = new Tile();
+                if(tileVal !=  null){
+                    numFillTiles ++;
+                }
+            }
+        }
+        int notPossibleMoves = 0;
+        boolean canMove = true;
+        if(numFillTiles == 16){
+            for (int i = 0; i < 4; i++) {
+                for (int j = 0; j < 4; j++) {
+                    Integer tileVal = copyBoard[i][j].getValue();
+                        if(i==0 && j == 0){
+                            if(tileVal != copyBoard[i+1][j].getValue()
+                                    && tileVal != copyBoard[i][j+1].getValue()){
+                                notPossibleMoves ++;
+                            }
+                        }
+                        if((i==1 || i==2) && j == 0){
+                            if(tileVal != copyBoard[i+1][j].getValue()
+                                && tileVal != copyBoard[i-1][j].getValue()
+                                && tileVal != copyBoard[i][j+1].getValue()){
+                                notPossibleMoves ++;
+                            }
+                        }
+                        if(i==3 && j == 0){
+                            if(tileVal != copyBoard[i-1][j].getValue()
+                                    && tileVal != copyBoard[i][j+1].getValue()){
+                                notPossibleMoves ++;
+                            }
+                        }
+                        if(i== 0 && (j == 1 || j==2)){
+                            if(tileVal != copyBoard[i+1][j].getValue()
+                                    && tileVal != copyBoard[i][j-1].getValue()
+                                    && tileVal != copyBoard[i][j+1].getValue()){
+                                notPossibleMoves ++;
+                            }
+                        }
+                        if(i== 0 && j == 3){
+                            if(tileVal != copyBoard[i+1][j].getValue()
+                                    && tileVal != copyBoard[i][j-1].getValue()){
+                                notPossibleMoves ++;
+                            }
+                        }
+                        if((i== 1 || i == 2) && (j == 1 || j==2)){
+                            if(tileVal != copyBoard[i+1][j].getValue()
+                                    && tileVal != copyBoard[i-1][j].getValue()
+                                    && tileVal != copyBoard[i][j-1].getValue()
+                                    && tileVal != copyBoard[i][j+1].getValue()){
+                                notPossibleMoves ++;
+                            }
+                        }
+                        if((i== 1 || i == 2) && j == 3){
+                            if(tileVal != copyBoard[i+1][j].getValue()
+                                    && tileVal != copyBoard[i-1][j].getValue()
+                                    && tileVal != copyBoard[i][j-1].getValue()){
+                                notPossibleMoves ++;
+                            }
+                        }
+                        if(i== 3 && j == 3){
+                            if(tileVal != copyBoard[i-1][j].getValue()
+                                    && tileVal != copyBoard[i][j-1].getValue()){
+                                notPossibleMoves ++;
+                            }
+                        }
+                        if(i== 3 && (j == 1 || j == 2)){
+                            if(tileVal != copyBoard[i-1][j].getValue()
+                                    && tileVal != copyBoard[i][j+1].getValue()
+                                    && tileVal != copyBoard[i][j-1].getValue()){
+                                notPossibleMoves ++;
+                            }
+                        }
+                }
+            }
+        }
+        if(notPossibleMoves == 16){
+            canMove = false;
+        }
+        return canMove;
+    }
+
+    public boolean boardSameCheck(Tile[][] board, Tile[][] newBoard){
+        boolean notSame = true;
+        int sameTiles = 0;
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                Integer tileBoard = board[i][j].getValue();
+                Integer tileNewBoard = newBoard[i][j].getValue();
+                if(tileBoard ==  tileNewBoard){
+                    sameTiles ++;
+                }
+            }
+        }
+        if(sameTiles == 16){
+            notSame = false;
+        }
+        return notSame;
+    }
+
+    public void right() {
+        boolean same = false;
+        Direction newB = new Direction(board, score);
+        newB.move();
+        newB.add();
+        newB.move();
+        if(boardSameCheck(board, newB.getCopyBoard())){
+            same = true;
+        }
+        newB.change(board);
+        score = newB.getScore();
+        if(same){
+            addTile();
+            gameStateSave();
+            saveGameFile();
+            getGameStatus();
+        }
+    }
+
+    public void left() {
+        boolean same = false;
+        Direction newB = new Direction(board, score);
+        newB.spin(2);
+        newB.move();
+        newB.add();
+        newB.move();
+        newB.spin(2);
+        if(boardSameCheck(board, newB.getCopyBoard())){
+            same = true;
+        }
+        newB.change(board);
+        score = newB.getScore();
+        if(same){
+            addTile();
+            gameStateSave();
+            saveGameFile();
+            getGameStatus();
+        }
+    }
+
+    public void up() {
+        boolean same = false;
+        Direction newB = new Direction(board, score);
+        newB.spin(1);
+        newB.move();
+        newB.add();
+        newB.move();
+        newB.spin(3);
+        if(boardSameCheck(board, newB.getCopyBoard())){
+            same = true;
+        }
+        newB.change(board);
+        score = newB.getScore();
+        if(same){
+            addTile();
+            gameStateSave();
+            saveGameFile();
+            getGameStatus();
+        }
+    }
+
+    public void down() {
+        boolean same = false;
+        Direction newB = new Direction(board, score);
+        newB.spin(3);
+        newB.move();
+        newB.add();
+        newB.move();
+        newB.spin(1);
+        if(boardSameCheck(board, newB.getCopyBoard())){
+            same = true;
+        }
+        newB.change(board);
+        score = newB.getScore();
+        if(same){
+            addTile();
+            gameStateSave();
+            saveGameFile();
+            getGameStatus();
+        }
+    }
+
+
+    public static void main(String args[]) throws IOException {
         _2048 game = new _2048();
-        game.print();
+//        game.print();
+//
+//        game.left();
+//        game.print();
+//        game.gameStateToString();
+//
+//        game.right();
+//        game.print();
+//        game.gameStateToString();
+//
+//        game.up();
+//        game.up();
+//
+//        game.down();
 
-        game.left();
-        game.print();
-        game.gameStateToString();
-
-        game.right();
-        game.print();
-        game.gameStateToString();
-
-        game.up();
-        game.up();
-
-        game.down();
-
-//        game.toString(game.board);
     }
 }

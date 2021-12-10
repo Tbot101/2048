@@ -4,7 +4,6 @@ import java.awt.*;
 
 public class Tile {
     private int value;
-    private boolean merge;
     private Color tileColor;
     Colors colorMap = new Colors();
 
@@ -38,21 +37,4 @@ public class Tile {
         this.setColor();
         return tileColor;
     }
-
-    /*void setMerge(boolean state) {
-        merge = state;
-    }
-
-    boolean checkMergeState(Tile tile) {
-        return !merge && tile != null && !tile.merge && value == tile.getValue();
-    }
-
-    int mergeWith(Tile other) {
-        if (checkMergeState(other)) {
-            value *= 2;
-            merge = true;
-            return value;
-        }
-        return -1;
-    }*/
 }

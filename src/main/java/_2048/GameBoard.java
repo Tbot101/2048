@@ -3,15 +3,17 @@ package _2048;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.IOException;
 
 public class GameBoard extends JPanel {
     private _2048 game2048;
     private JLabel status; // current status text
+    _2048.State gameState = _2048.State.RUN;
 
     public static final int BOARD_WIDTH = 400;
     public static final int BOARD_HEIGHT = 500;
 
-    public GameBoard(JLabel statusInit) {
+    public GameBoard(JLabel statusInit) throws IOException {
         // creates border around the court area, JComponent method
         setBorder(BorderFactory.createLineBorder(Color.BLACK));
 
@@ -25,42 +27,47 @@ public class GameBoard extends JPanel {
         addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                if ( e.getKeyChar() == 'w' || e.getKeyCode() == KeyEvent.VK_UP )
+                if ( e.getKeyChar() == 'a' || e.getKeyCode() == KeyEvent.VK_LEFT )
                 {
                     game2048.up();
-                    //                    gameBoard = game2048.toString();
-                    repaint();
-                }
-                else if ( e.getKeyChar() == 's' || e.getKeyCode() == KeyEvent.VK_DOWN )
-                {
-                    game2048.down();
-                    //                    gameBoard = game2048.toString();
-                    repaint();
-                }
-                else if ( e.getKeyChar() == 'a' || e.getKeyCode() == KeyEvent.VK_LEFT )
-                {
-                    game2048.left();
-                    //                    gameBoard = game2048.toString();
+                    updateStatus();
                     repaint();
                 }
                 else if ( e.getKeyChar() == 'd' || e.getKeyCode() == KeyEvent.VK_RIGHT )
                 {
+                    game2048.down();
+                    updateStatus();
+                    repaint();
+                }
+                else if ( e.getKeyChar() == 'w' || e.getKeyCode() == KeyEvent.VK_UP )
+                {
+                    game2048.left();
+                    updateStatus();
+                    repaint();
+                }
+                else if ( e.getKeyChar() == 's' || e.getKeyCode() == KeyEvent.VK_DOWN )
+                {
                     game2048.right();
-                    //                    gameBoard = game2048.toString();
+                    updateStatus();
                     repaint();
                 }
                 else if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE )
                 {
                     if(game2048.gameStateLength() != 0){
                         game2048.previousMove();
-                        //                    gameBoard = game2048.toString();
+                        updateStatus();
                         repaint();
                     }
                     return;
                 }
                 else if ( e.getKeyCode() == KeyEvent.VK_ENTER )
                 {
-                    game2048 = new _2048();
+                    try {
+                        game2048 = new _2048();
+                        updateStatus();
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
                     repaint();
                 }
             }
@@ -71,7 +78,7 @@ public class GameBoard extends JPanel {
     /**
      * (Re-)sets the game to its initial state.
      */
-    public void reset() {
+    public void reset() throws IOException {
         game2048.reset();
         status.setText("Player's Turn");
         repaint();
@@ -84,15 +91,12 @@ public class GameBoard extends JPanel {
      * Updates the JLabel to reflect the current state of the game.
      */
     private void updateStatus() {
-        if (game2048.getGameStatus()) {
+        if (gameState == _2048.State.RUN) {
             status.setText("Running");
-        } else {
+        } else if (gameState == _2048.State.WIN) {
+            status.setText("You Win!");
+        } else if (gameState == _2048.State.LOSE) {
             status.setText("Game Over");
-        }
-
-        int winner = game2048.getHighTile();
-        if (winner == 2048) {
-            status.setText("Player wins");
         }
     }
 
@@ -117,8 +121,7 @@ public class GameBoard extends JPanel {
         g.drawLine(0, 300, 400, 300);
         g.drawLine(0, 400, 400, 400);
 
-        if (game2048.getGameStatus()) {
-
+        if (gameState == _2048.State.RUN) {
             for (int i = 0; i < 4; i++) {
                 for (int j = 0; j < 4; j++) {
                     drawTile(g,game2048.getBoard()[i][j],i * 100,j * 100 );
@@ -134,11 +137,11 @@ public class GameBoard extends JPanel {
 
             g.setFont(new Font("SansSerif", Font.BOLD, 20));
 
-            /*if (gamestate == State.won) {
-                g.drawString("you made it!", 390, 350);
+            if (gameState == _2048.State.WIN) {
+                g.drawString("You Win!", 390, 350);
 
-            } else if (gamestate == State.over)
-                g.drawString("game over", 400, 350);*/
+            } else if (gameState == _2048.State.LOSE)
+                g.drawString("Game Over", 400, 350);
 
 
         }
