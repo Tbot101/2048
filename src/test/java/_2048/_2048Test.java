@@ -164,4 +164,52 @@ class _2048Test {
         Assert.assertTrue(game.boardSameCheck(testTile,expectedTile));
     }
 
+    @org.junit.jupiter.api.Test
+    public void testMoveRightDouble() throws IOException {
+        // Should restart board game as all tiles should be divisible by 2
+        List<Integer> testBoard = new ArrayList<>();
+        testBoard.add(2); testBoard.add(2); testBoard.add(2); testBoard.add(2);
+        testBoard.add(0); testBoard.add(0); testBoard.add(0); testBoard.add(0);
+        testBoard.add(0); testBoard.add(0); testBoard.add(0); testBoard.add(0);
+        testBoard.add(0); testBoard.add(0); testBoard.add(0); testBoard.add(0);
+        game.setBoard(testBoard);
+        game.down(false);
+        Tile[][] testTileDown1 = game.getBoard();
+        game.down(false);
+        Tile[][] testTileDown2 = game.getBoard();
+
+        _2048 defaultGame = new _2048();
+
+        List<Integer> down1Board = new ArrayList<>();
+        down1Board.add(4); down1Board.add(4); down1Board.add(0); down1Board.add(0);
+        down1Board.add(0); down1Board.add(0); down1Board.add(0); down1Board.add(0);
+        down1Board.add(0); down1Board.add(0); down1Board.add(0); down1Board.add(0);
+        down1Board.add(0); down1Board.add(0); down1Board.add(0); down1Board.add(0);
+        defaultGame.setBoard(down1Board);
+        Tile[][] down1Tile = defaultGame.getBoard();
+
+        List<Integer> down2Board = new ArrayList<>();
+        down2Board.add(8); down2Board.add(0); down2Board.add(0); down2Board.add(0);
+        down2Board.add(0); down2Board.add(0); down2Board.add(0); down2Board.add(0);
+        down2Board.add(0); down2Board.add(0); down2Board.add(0); down2Board.add(0);
+        down2Board.add(0); down2Board.add(0); down2Board.add(0); down2Board.add(0);
+        defaultGame.setBoard(down1Board);
+        Tile[][] down2Tile = defaultGame.getBoard();
+
+        Assert.assertTrue(game.boardSameCheck(testTileDown1,down1Tile));
+        Assert.assertTrue(game.boardSameCheck(testTileDown2,down2Tile));
+    }
+
+    @org.junit.jupiter.api.Test
+    public void test2048Reached() throws IOException {
+        List<Integer> testBoard = new ArrayList<>();
+        testBoard.add(2); testBoard.add(0); testBoard.add(0); testBoard.add(2);
+        testBoard.add(4); testBoard.add(4); testBoard.add(0); testBoard.add(0);
+        testBoard.add(2048); testBoard.add(0); testBoard.add(0); testBoard.add(0);
+        testBoard.add(0); testBoard.add(0); testBoard.add(0); testBoard.add(0);
+        game.setBoard(testBoard);
+        _2048.State gameState = game.getGameStatus();
+        Assert.assertEquals(gameState, _2048.State.WIN);
+    }
+
 }
