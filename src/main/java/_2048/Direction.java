@@ -1,5 +1,4 @@
 package _2048;
-import _2048.Tile;
 
 public class Direction {
     private Tile[][] copyBoard;

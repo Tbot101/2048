@@ -1,10 +1,11 @@
 package _2048;
 
-import com.sun.org.apache.xerces.internal.xs.StringList;
-
 import java.io.*;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.Stack;
 
 public class _2048 {
     private Tile[][] board;
